@@ -36,7 +36,7 @@ A **foreground service** means that your app **can continue to run code** in the
 Foreground services are required for:
 
 - Real-time **location tracking** (e.g. for couriers or taxi apps)
-- **Music or media playback**
+- **Media playback**
 - **Download/upload** tasks
 - **Long-running background tasks** that must not be interrupted
 
