@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:background/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 // FROM DOCUMENTATION:
 
@@ -13,20 +14,32 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 
 //      Call FlutterBackgroundService.start to start the Service if autoStart is not enabled.
 
-// Since the Service using Isolates, You won't be able to share reference between UI and Service. You can communicate between UI and Service using invoke() and on(String method).
+// Since the Service using Isolates, You won't be able to share reference between UI and Service.
+
+// You can communicate between UI and Service using invoke() and on(String method).
+
+// -----------
+
+// Keep in your mind, iOS doesn't have a long running service feature like Android. So, it's not possible
+
+// to keep your application running when it's in background because the OS will suspend your application
+
+// soon. Currently, this plugin provide onBackground method, that will be executed periodically by
+
+// "Background Fetch" capability provided by iOS. It cannot be faster than 15 minutes and only alive about 15-30 seconds.
 
 class BackgroundService {
-  Future<void> initializeForgroundService() async {
+  Future<void> initializeBackgroundService() async {
     final service = FlutterBackgroundService();
 
     final androidConfiguration = AndroidConfiguration(
       onStart: onStart,
       isForegroundMode: true, // if it's true -> always shows notification
-      autoStart: true,
+      autoStart: false, // if it's true - you dont have to start it manually with another function
     );
 
     final iosConfiguration = IosConfiguration(
-      autoStart: true,
+      autoStart: false, // if it's true - you dont have to start it manually with another function
       onForeground: onStart,
       onBackground: onIosBackground,
     );
@@ -37,9 +50,21 @@ class BackgroundService {
     );
   }
 
-  Future<bool> startForgroundService() {
+  // if you didnt set autoStart in configuration
+  // then you have to enable it manually
+  Future<bool> startBackgroundService() {
     final service = FlutterBackgroundService();
     return service.startService();
+  }
+
+  Future<void> stopService() async {
+    final service = FlutterBackgroundService();
+    service.invoke('stop');
+  }
+
+  Future<bool> isRunning() {
+    final service = FlutterBackgroundService();
+    return service.isRunning();
   }
 }
 
@@ -53,8 +78,14 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
+  // if user sends stop event then stop the background service
+  service.on("stop").listen((event) {
+    service.stopSelf();
+  });
+
+  //
   DartPluginRegistrant.ensureInitialized();
-  final notificationService = NotificationService();
+  final notificationService = NotificationService(FlutterLocalNotificationsPlugin());
   Timer.periodic(const Duration(seconds: 10), (timer) {
     notificationService.showNotificaion(1);
   });

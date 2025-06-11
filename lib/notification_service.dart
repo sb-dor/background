@@ -1,8 +1,11 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-final flutterLocalNotificaionPlugin = FlutterLocalNotificationsPlugin();
 
 class NotificationService {
+  NotificationService(this.flutterLocalNotificationPlugin);
+
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationPlugin;
+
   Future<void> initializeNotificationService() async {
     final androidSettings = AndroidInitializationSettings('app_icon');
     // no actions for now
@@ -18,7 +21,7 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await flutterLocalNotificaionPlugin.initialize(initializationSettings);
+    await flutterLocalNotificationPlugin.initialize(initializationSettings);
   }
 
   Future<void> showNotificaion(int notificationId) async {
@@ -40,7 +43,7 @@ class NotificationService {
 
     notificationId = notificationId + 1;
 
-    await flutterLocalNotificaionPlugin.show(
+    await flutterLocalNotificationPlugin.show(
       notificationId++,
       "Test notification title",
       "Test notification body",

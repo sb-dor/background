@@ -3,12 +3,12 @@ import 'package:background/notification_permission_handler.dart';
 import 'package:background/notification_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final BackgroundService backgroundService = BackgroundService();
-  backgroundService.initializeForgroundService();
-  backgroundService.startForgroundService();
+  final backgroundService = BackgroundService();
+  await backgroundService.initializeBackgroundService();
   runApp(App());
 }
 
@@ -31,13 +31,16 @@ class BackgroundApp extends StatefulWidget {
 class _BackgroundAppState extends State<BackgroundApp> {
   late final NotificationPermissionHandler _notificationPermissionHandler;
   late final NotificationService _notificationService;
+  late final BackgroundService _backgroundService;
+  bool backgroundServiceEnabled = false;
   int notificatioId = 0;
 
   @override
   void initState() {
     super.initState();
     _notificationPermissionHandler = NotificationPermissionHandler();
-    _notificationService = NotificationService();
+    _notificationService = NotificationService(FlutterLocalNotificationsPlugin());
+    _backgroundService = BackgroundService();
     initialize();
   }
 
@@ -51,6 +54,20 @@ class _BackgroundAppState extends State<BackgroundApp> {
     }
 
     await _notificationService.initializeNotificationService();
+
+    final isRunning = await _backgroundService.isRunning();
+
+    if (!isRunning) {
+      await _backgroundService.startBackgroundService();
+    }
+
+    print("is running 1: $isRunning");
+
+    backgroundServiceEnabled = await _backgroundService.isRunning();
+
+    print("is running 2: $backgroundServiceEnabled");
+
+    setState(() {});
   }
 
   @override
@@ -60,13 +77,34 @@ class _BackgroundAppState extends State<BackgroundApp> {
       body: CustomScrollView(
         slivers: [
           SliverFillRemaining(
-            child: Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  _notificationService.showNotificaion(++notificatioId);
-                },
-                child: Text("Show notification"),
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    _notificationService.showNotificaion(++notificatioId);
+                  },
+                  child: Text("Show notification"),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (backgroundServiceEnabled) {
+                      await _backgroundService.stopService();
+                      backgroundServiceEnabled = false;
+                      setState(() {});
+                    } else {
+                      backgroundServiceEnabled = await _backgroundService.startBackgroundService();
+                      setState(() {});
+                    }
+                  },
+                  child: Text(
+                    backgroundServiceEnabled
+                        ? "Stop background service"
+                        : "Start background service",
+                  ),
+                ),
+              ],
             ),
           ),
         ],
