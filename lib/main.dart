@@ -1,13 +1,14 @@
+import 'package:background/background_service.dart';
 import 'package:background/notification_permission_handler.dart';
+import 'package:background/notification_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-final flutterLocalNotificaionPlugin = FlutterLocalNotificationsPlugin();
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  final BackgroundService backgroundService = BackgroundService();
+  backgroundService.initializeForgroundService();
+  backgroundService.startForgroundService();
   runApp(App());
 }
 
@@ -29,12 +30,14 @@ class BackgroundApp extends StatefulWidget {
 
 class _BackgroundAppState extends State<BackgroundApp> {
   late final NotificationPermissionHandler _notificationPermissionHandler;
-  int notificatioId = 1;
+  late final NotificationService _notificationService;
+  int notificatioId = 0;
 
   @override
   void initState() {
     super.initState();
     _notificationPermissionHandler = NotificationPermissionHandler();
+    _notificationService = NotificationService();
     initialize();
   }
 
@@ -47,57 +50,7 @@ class _BackgroundAppState extends State<BackgroundApp> {
       notificationPermission = await _notificationPermissionHandler.askNotificationPermission();
     }
 
-    await initializeNotificationService();
-    await initializeForgroundService();
-  }
-
-  Future<void> initializeNotificationService() async {
-    final androidSettings = AndroidInitializationSettings('app_icon');
-    // no actions for now
-    final iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    );
-
-    // android and ios for now
-    final initializationSettings = InitializationSettings(
-      android: androidSettings,
-      iOS: iosSettings,
-    );
-
-    await flutterLocalNotificaionPlugin.initialize(initializationSettings);
-  }
-
-  Future<bool> initializeForgroundService() {
-    final service = FlutterBackgroundService();
-    return service.startService();
-  }
-
-  Future<void> showNotificaion() async {
-    final androidNotificationDetails = AndroidNotificationDetails(
-      "android_channel_id",
-      "android_channel_name",
-      channelDescription: "android channel description",
-      importance: Importance.max,
-      priority: Priority.high,
-      ticker: "ticker",
-    );
-
-    final iosNotificationDetails = DarwinNotificationDetails();
-
-    final notificationDetails = NotificationDetails(
-      android: androidNotificationDetails,
-      iOS: iosNotificationDetails,
-    );
-
-    await flutterLocalNotificaionPlugin.show(
-      notificatioId++,
-      "Test notification title",
-      "Test notification body",
-      notificationDetails,
-      payload: "item x"
-    );
+    await _notificationService.initializeNotificationService();
   }
 
   @override
@@ -110,7 +63,7 @@ class _BackgroundAppState extends State<BackgroundApp> {
             child: Center(
               child: ElevatedButton(
                 onPressed: () {
-                  showNotificaion();
+                  _notificationService.showNotificaion(++notificatioId);
                 },
                 child: Text("Show notification"),
               ),
