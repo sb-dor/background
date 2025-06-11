@@ -61,11 +61,7 @@ class _BackgroundAppState extends State<BackgroundApp> {
       await _backgroundService.startBackgroundService();
     }
 
-    print("is running 1: $isRunning");
-
     backgroundServiceEnabled = await _backgroundService.isRunning();
-
-    print("is running 2: $backgroundServiceEnabled");
 
     setState(() {});
   }

@@ -1,13 +1,12 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-
 class NotificationService {
   NotificationService(this.flutterLocalNotificationPlugin);
 
   final FlutterLocalNotificationsPlugin flutterLocalNotificationPlugin;
 
   Future<void> initializeNotificationService() async {
-    final androidSettings = AndroidInitializationSettings('app_icon');
+    final androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     // no actions for now
     final iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
@@ -48,7 +47,7 @@ class NotificationService {
       "Test notification title",
       "Test notification body",
       notificationDetails,
-      payload: "item x",
+      payload: "item x", // not necessary
     );
   }
 }
