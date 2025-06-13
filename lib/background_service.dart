@@ -52,12 +52,12 @@ class BackgroundService {
 
   // if you didnt set autoStart in configuration
   // then you have to enable it manually
-  Future<bool> startBackgroundService() {
+  Future<bool> _startBackgroundService() {
     final service = FlutterBackgroundService();
     return service.startService();
   }
 
-  Future<void> stopService() async {
+  Future<void> _stopService() async {
     final service = FlutterBackgroundService();
     service.invoke('stop');
   }
@@ -65,6 +65,19 @@ class BackgroundService {
   Future<bool> isRunning() {
     final service = FlutterBackgroundService();
     return service.isRunning();
+  }
+
+  Future<bool> startBackgroundServiceWithChecking() async {
+    final isServiceRunning = await isRunning();
+    if (isServiceRunning) return true;
+    return _startBackgroundService();
+  }
+
+  Future<bool> stopServiceWithChecking() async {
+    final isServiceRunning = await isRunning();
+    if (!isServiceRunning) return true; // service is not running
+    await _stopService();
+    return true;
   }
 }
 

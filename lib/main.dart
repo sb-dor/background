@@ -55,11 +55,7 @@ class _BackgroundAppState extends State<BackgroundApp> {
 
     await _notificationService.initializeNotificationService();
 
-    final isRunning = await _backgroundService.isRunning();
-
-    if (!isRunning) {
-      await _backgroundService.startBackgroundService();
-    }
+    await _backgroundService.startBackgroundServiceWithChecking();
 
     backgroundServiceEnabled = await _backgroundService.isRunning();
 
@@ -86,11 +82,12 @@ class _BackgroundAppState extends State<BackgroundApp> {
                 ElevatedButton(
                   onPressed: () async {
                     if (backgroundServiceEnabled) {
-                      await _backgroundService.stopService();
+                      await _backgroundService.stopServiceWithChecking();
                       backgroundServiceEnabled = false;
                       setState(() {});
                     } else {
-                      backgroundServiceEnabled = await _backgroundService.startBackgroundService();
+                      backgroundServiceEnabled =
+                          await _backgroundService.startBackgroundServiceWithChecking();
                       setState(() {});
                     }
                   },
